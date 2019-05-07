@@ -13,6 +13,25 @@ pub fn string_score(data: &[u8]) -> usize {
     score
 }
 
+pub fn decode_fixed_xor(data: &[u8]) -> u8 {
+    let mut candidate_score = 0;
+    let mut candidate_key = 0;
+
+    for byte in 0..255u8 {
+        let key: Vec<u8> = vec![byte; data.len()];
+        let plain = super::task2::xor(data, &key);
+
+        let score = string_score(&plain);
+
+        if score > candidate_score {
+            candidate_score = score;
+            candidate_key = byte;
+        }
+    }
+
+    candidate_key
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -29,34 +48,12 @@ mod test {
     }
 
     #[test]
-    fn decode_fixed_xor() {
+    fn test_decode_fixed_xor() {
         let test_hex = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
         let test_data = task1::hex_decode(test_hex);
 
-        let mut candidate = Vec::new();
-        let mut candidate_score = 0;
-        let mut candidate_key = 0;
+        let supposed_key = decode_fixed_xor(&test_data);
 
-        for byte in 0..255u8 {
-            let key = vec![byte; test_data.len()];
-            let plain = task2::xor(&test_data, &key);
-
-            let score = string_score(&plain);
-
-            eprintln!("{} -> {}: {}", byte, score, String::from_utf8_lossy(&plain));
-
-            if score > candidate_score {
-                candidate_score = score;
-                candidate_key = byte;
-                candidate = plain;
-            }
-        }
-
-        assert_eq!(candidate_key, 88);
-        assert_eq!(candidate_score, 78);
-        assert_eq!(
-            &String::from_utf8(candidate).unwrap(),
-            &"Cooking MC's like a pound of bacon"
-        );
+        assert_eq!(supposed_key, 88);
     }
 }

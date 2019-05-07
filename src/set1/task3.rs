@@ -13,12 +13,13 @@ pub fn string_score(data: &[u8]) -> usize {
     score
 }
 
-pub fn decode_fixed_xor(data: &[u8]) -> u8 {
+pub fn decode_fixed_xor(data: &[u8]) -> (u8, usize, Vec<u8>) {
     let mut candidate_score = 0;
     let mut candidate_key = 0;
+    let mut candidate_plaintext = Vec::new();
 
     for byte in 0..255u8 {
-        let key: Vec<u8> = vec![byte; data.len()];
+        let key = vec![byte; data.len()];
         let plain = super::task2::xor(data, &key);
 
         let score = string_score(&plain);
@@ -26,10 +27,11 @@ pub fn decode_fixed_xor(data: &[u8]) -> u8 {
         if score > candidate_score {
             candidate_score = score;
             candidate_key = byte;
+            candidate_plaintext = plain;
         }
     }
 
-    candidate_key
+    (candidate_key, candidate_score, candidate_plaintext)
 }
 
 #[cfg(test)]
@@ -52,7 +54,7 @@ mod test {
         let test_hex = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
         let test_data = task1::hex_decode(test_hex);
 
-        let supposed_key = decode_fixed_xor(&test_data);
+        let (supposed_key, _, _) = decode_fixed_xor(&test_data);
 
         assert_eq!(supposed_key, 88);
     }

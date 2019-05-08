@@ -15,7 +15,7 @@ pub fn base64_decode(data: &str) -> Vec<u8> {
                 1 => {
                     cur_byte |= (val as u8) >> 4;
                     decoded.push(cur_byte);
-                    cur_byte = ((val as u8) & 0x4F) << 4
+                    cur_byte = (val as u8) << 4
                 }
                 2 => {
                     cur_byte |= (val as u8) >> 2;
@@ -25,7 +25,6 @@ pub fn base64_decode(data: &str) -> Vec<u8> {
                 3 => {
                     cur_byte |= val as u8;
                     decoded.push(cur_byte);
-                    cur_byte = 0;
                 }
                 _ => unreachable!(), // make compiler happy
             }
@@ -33,11 +32,42 @@ pub fn base64_decode(data: &str) -> Vec<u8> {
     }
 
     decoded
-    //base64::decode(data).unwrap()
 }
 
 pub fn base64_encode(data: &[u8]) -> String {
-    base64::encode(data)
+    let mut b64 = String::with_capacity(data.len() * 4 / 3); //TODO: not perfect
+
+    let mut overflow = 0;
+
+    for (i, byte) in data.iter().enumerate() {
+        match i % 3 {
+            0 => {
+                b64.push(BASE64_CHARSET.chars().nth((byte >> 2) as usize).unwrap());
+                overflow = (byte & 0x03) << 4;
+            }
+            1 => {
+                b64.push(
+                    BASE64_CHARSET
+                        .chars()
+                        .nth((overflow | (byte >> 4)) as usize)
+                        .unwrap(),
+                );
+                overflow = (byte & 0x0F) << 2;
+            }
+            2 => {
+                b64.push(
+                    BASE64_CHARSET
+                        .chars()
+                        .nth((overflow | (byte >> 6)) as usize)
+                        .unwrap(),
+                );
+                b64.push(BASE64_CHARSET.chars().nth((byte & 0x3F) as usize).unwrap());
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    b64
 }
 
 pub fn hex_decode(data: &str) -> Vec<u8> {

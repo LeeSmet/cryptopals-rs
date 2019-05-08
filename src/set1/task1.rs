@@ -1,9 +1,39 @@
 const HEX_CHARSET: &'static str = "0123456789abcdef";
+const BASE64_CHARSET: &'static str =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 pub fn base64_decode(data: &str) -> Vec<u8> {
     assert!(data.len() % 4 == 0);
 
-    base64::decode(data).unwrap()
+    let mut decoded = Vec::with_capacity(data.len() / 4 * 3);
+
+    let mut cur_byte = 0;
+    for (i, ch) in data.chars().enumerate() {
+        if let Some((val, _)) = BASE64_CHARSET.match_indices(ch).take(1).next() {
+            match i % 4 {
+                0 => cur_byte = (val as u8) << 2,
+                1 => {
+                    cur_byte |= (val as u8) >> 4;
+                    decoded.push(cur_byte);
+                    cur_byte = ((val as u8) & 0x4F) << 4
+                }
+                2 => {
+                    cur_byte |= (val as u8) >> 2;
+                    decoded.push(cur_byte);
+                    cur_byte = (val as u8) << 6;
+                }
+                3 => {
+                    cur_byte |= val as u8;
+                    decoded.push(cur_byte);
+                    cur_byte = 0;
+                }
+                _ => unreachable!(), // make compiler happy
+            }
+        }
+    }
+
+    decoded
+    //base64::decode(data).unwrap()
 }
 
 pub fn base64_encode(data: &[u8]) -> String {

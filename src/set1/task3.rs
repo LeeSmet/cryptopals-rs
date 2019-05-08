@@ -3,9 +3,11 @@ pub fn string_score(data: &[u8]) -> usize {
 
     for byte in data {
         match byte {
-            48...57 => score += 1,  // digits
-            65...90 => score += 2,  // Capitals
-            97...122 => score += 3, // a-z
+            48...57 => score += 1,      // digits
+            65...90 => score += 3,      // Capitals
+            97...122 => score += 10,    // a-z
+            32 => score += 5,           // space is reasonably common, more so than capitals
+            33 | 44 | 46 => score += 1, // award a point for  exclamation mark | period | dot
             _ => {}
         }
     }
@@ -42,7 +44,7 @@ mod test {
     #[test]
     fn test_string_score() {
         let test_strings = ["abc", "12-02", "To be or not to be"];
-        let expected_scores = [9, 4, 38];
+        let expected_scores = [30, 4, 148];
 
         for (test_str, expected_score) in test_strings.iter().zip(expected_scores.iter()) {
             assert_eq!(&string_score(test_str.as_bytes()), expected_score);

@@ -44,8 +44,6 @@ mod test {
 
         let decrypted = decrypt_aes_128(key, &data);
 
-        eprintln!("{}", String::from_utf8_lossy(&decrypted));
-
         assert_eq!(
             decrypted,
             vec![

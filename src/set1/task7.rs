@@ -1,6 +1,6 @@
 use crypto::aes;
 use crypto::blockmodes::NoPadding;
-use crypto::buffer::{RefReadBuffer, RefWriteBuffer, WriteBuffer};
+use crypto::buffer::{RefReadBuffer, RefWriteBuffer};
 
 pub fn decrypt_aes_128(key: &[u8], data: &[u8]) -> Vec<u8> {
     let mut decrypted = vec![0; data.len()];
